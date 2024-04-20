@@ -1,5 +1,6 @@
 library(readr)
 library(dplyr)
+library(ggplot2)
 
 datos_historico <- read_csv("urinalysis_tests.csv")
 
@@ -10,10 +11,10 @@ datos_procesados <- datos_historico
 
 str(datos_procesados)
 
-# Convertir la variable de género a valores numéricos (0 y 1)
-
 datos_procesados$Gender <- ifelse(datos_procesados$Gender == "MALE", 0, 1)
 datos_procesados$Diagnosis <- ifelse(datos_procesados$Diagnosis == "NEGATIVE", 0, 1)
+datos_procesados$Transparency <- ifelse(datos_procesados$Transparency == "CLEAR",1,0)
+datos_procesados$Protein <- ifelse(datos_procesados$Protein == "NEGATIVE",0,1)
 
 # Variables cuantificadoras
 
@@ -61,19 +62,6 @@ datos_procesados$Color <- mapeo_colores[datos_procesados$Color]
 # ---------------------------------------------------------------------------------
 
 
-#Transparency
-
-#
-#
-
-# ---------------------------------------------------------------------------------
-categorias_transparencia <- unique(datos_procesados$Transparency)
-numeros_transparencia <- 1:length(categorias_transparencia)
-mapeo_transparencia <- setNames(numeros_transparencia, categorias_transparencia)
-datos_procesados$Transparency <- mapeo_transparencia[datos_procesados$Transparency]  
-
-# ---------------------------------------------------------------------------------
-
 
 # #Glucose
 # 
@@ -82,23 +70,6 @@ categorias_glucose <- unique(datos_procesados$Glucose)
 numeros_glucosa <- 1:length(categorias_glucose)
 mapeo_glucosa <- setNames(numeros_glucosa, categorias_glucose)
 datos_procesados$Glucose <- mapeo_glucosa[datos_procesados$Glucose]  
-
-# ---------------------------------------------------------------------------------
-# # Protein
-# 
-# #
-# #
-# 
-# # Los Respectivos Números
-# 
-
-# ---------------------------------------------------------------------------------
-categorias_proteina <- unique(datos_procesados$Protein)
-numeros_proteina <- 1:length(categorias_proteina)
-mapeo_proteina <- setNames(numeros_proteina, categorias_proteina)
-datos_procesados$Protein <- mapeo_glucosa[datos_procesados$Protein]  
-
-# ---------------------------------------------------------------------------------
 
 
 
@@ -131,55 +102,85 @@ mapeo_RBC <- setNames(numeros_RBC, categorias_RBC)
 datos_procesados$RBC <- mapeo_RBC[datos_procesados$RBC]  
 # ---------------------------------------------------------------------------------
 
+
+#Ordinales
+
+categorias_ordinales <- c("NONE SEEN","RARE","FEW","OCCASIONAL","MODERATE","PLENTY","LOADED")
+numeros_ordinales <- 1:length(categorias_ordinales)
+
 # ---------------------------------------------------------------------------------
 # # Epitelial Cells
-# 
-# #
-# #
-# ---------------------------------------------------------------------------------
-categorias_EC <- unique(datos_procesados$`Epithelial Cells`)
-numeros_EC <- 1:length(categorias_EC)
-mapeo_EC <- setNames(numeros_EC, categorias_EC)
+
+mapeo_EC <- setNames(numeros_ordinales, categorias_ordinales)
 datos_procesados$`Epithelial Cells` <- mapeo_EC[datos_procesados$`Epithelial Cells`]  
 
-# ---------------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------------
 # # Mucous Threads
-# 
-# #
-# #
-# ---------------------------------------------------------------------------------
-categorias_MT <- unique(datos_procesados$`Mucous Threads`)
-numeros_MT <- 1:length(categorias_MT)
-mapeo_MT <- setNames(numeros_MT, categorias_MT)
+
+mapeo_MT <- setNames(numeros_ordinales, categorias_ordinales)
 datos_procesados$`Mucous Threads` <- mapeo_MT[datos_procesados$`Mucous Threads`]  
 
-# ---------------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------------
 # # Amorphous Urates
-# 
-# #
-# #
-# ---------------------------------------------------------------------------------
-categorias_AU <- unique(datos_procesados$`Amorphous Urates`)
-numeros_AU <- 1:length(categorias_AU)
-mapeo_AU <- setNames(numeros_AU, categorias_AU)
+
+mapeo_AU <- setNames(numeros_ordinales, categorias_ordinales)
 datos_procesados$`Amorphous Urates` <- mapeo_AU[datos_procesados$`Amorphous Urates`]  
 
-# ---------------------------------------------------------------------------------
+# # Bacteria
+
+mapeo_Bacteria <- setNames(numeros_ordinales, categorias_ordinales)
+datos_procesados$Bacteria <- mapeo_Bacteria[datos_procesados$Bacteria]  
 
 # ---------------------------------------------------------------------------------
-# # Bacteria
-# 
-# #
-# #
-# ---------------------------------------------------------------------------------
-categorias_Bacteria <- unique(datos_procesados$Bacteria)
-numeros_Bacteria <- 1:length(categorias_Bacteria)
-mapeo_Bacteria <- setNames(numeros_Bacteria, categorias_Bacteria)
-datos_procesados$Bacteria <- mapeo_Bacteria[datos_procesados$Bacteria]  
+#Histogramas datos procesados
+
+datos_procesados_dicotomicos <- select(datos_procesados,Gender,Transparency,Protein,Diagnosis)
+  
+datos_procesados_dicotomicos_positivos <- filter( datos_procesados_dicotomicos,Diagnosis== 1)
+datos_procesados_dicotomicos_positivos <- subset(datos_procesados_dicotomicos_positivos,select = -Diagnosis)
+
+datos_procesados_dicotomicos_negativos <- filter( datos_procesados_dicotomicos,Diagnosis== 0)
+datos_procesados_dicotomicos_negativos <- subset(datos_procesados_dicotomicos_negativos,select = -Diagnosis)
+
+datos_procesados_ordinales <- select(datos_procesados,`Epithelial Cells`,`Mucous Threads`,`Amorphous Urates`,Bacteria,Diagnosis)
+
+datos_procesados_ordinales_positivos <-  filter( datos_procesados_ordinales,Diagnosis== 1)
+datos_procesados_ordinales_positivos <-  subset(datos_procesados_ordinales_positivos, select = -Diagnosis)
+
+datos_procesados_ordinales_negativos <-  filter( datos_procesados_ordinales,Diagnosis== 0)
+datos_procesados_ordinales_negativos <-  subset(datos_procesados_ordinales_negativos, select = -Diagnosis)
+
+
+datos_dic_pos <- tidyr::gather(datos_procesados_dicotomicos_positivos, key = "Variable", value = "Valor")
+ggplot(datos_dic_pos, aes(x = Valor, fill = Variable)) +
+  geom_bar(position = "dodge", color = "black") +
+  facet_wrap(~ Variable, scales = "free") +
+  labs(title = "Gráficos de barras de las variables", x = "Valor", y = "Cantidad") +
+  theme_minimal()
+
+
+datos_dic_pos <- tidyr::gather(datos_procesados_dicotomicos_negativos, key = "Variable", value = "Valor")
+ggplot(datos_dic_pos, aes(x = Valor, fill = Variable)) +
+  geom_bar(position = "dodge", color = "black") +
+  facet_wrap(~ Variable, scales = "free") +
+  labs(title = "Gráficos de barras de las variables", x = "Valor",y = "Cantidad") +
+  theme_minimal()
+
+
+
+datos_ord_pos <- tidyr::gather(datos_procesados_ordinales_positivos, key = "Variable", value = "Valor")
+ggplot(datos_ord_pos, aes(x = Valor, fill = Variable)) +
+  geom_bar(position = "dodge", color = "black") +
+  facet_wrap(~ Variable, scales = "free") +
+  labs(title = "Gráficos de barras de las variables", x = "Valor",y = "Cantidad") +
+  theme_minimal()
+
+
+datos_ord_neg <- tidyr::gather(datos_procesados_ordinales_negativos, key = "Variable", value = "Valor")
+ggplot(datos_ord_neg, aes(x = Valor, fill = Variable)) +
+  geom_bar(position = "dodge", color = "black") +
+  facet_wrap(~ Variable, scales = "free") +
+  labs(title = "Gráficos de barras de las variables", x = "Valor",y = "Cantidad") +
+  theme_minimal()
 
 # ---------------------------------------------------------------------------------
 
@@ -270,7 +271,7 @@ frecuencias_rel <- data.frame(
 )
 
 # Graficar el diagrama comparativo de frecuencias relativas
-library(ggplot2)
+
 ggplot(frecuencias_rel, aes(x=Age)) +
   geom_line(aes(y=Positive, color="Positive")) +
   geom_line(aes(y=Negative, color="Negative")) +
