@@ -327,3 +327,19 @@ ggplot(frecuencias_rel_specific_gravity, aes(x=Specific_Gravity)) +
   labs(title="Comparación de Frecuencias Relativas de Specific Gravity",
        x="Specific Gravity", y="Frecuencia Relativa") +
   theme_minimal()
+
+t_test_result <- t.test(datos_positive$Age, datos_negative$Age)
+
+# Imprimir el resultado
+print(t_test_result)
+
+t_test_result <- t.test(datos_positive$pH , datos_negative$pH)
+
+# Imprimir el resultado
+print(t_test_result)
+
+t_test_result <- t.test(datos_positive$`Specific Gravity` , datos_negative$`Specific Gravity`)
+
+# Imprimir el resultado
+print(t_test_result)
+
