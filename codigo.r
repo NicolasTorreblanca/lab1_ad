@@ -1,32 +1,48 @@
+#Laboratorio 1 Analisis de datos
+
+#Bryan Salgado
+#Nicolas Torreblanca
+
+#----------------------------------------------------------------------------
+
+#Primero que nada, importamos las librerias
+
+
 library(readr)
 library(dplyr)
 library(ggplot2)
 
+#----------------------------------------------------------------------------
+
+#Leemos el archivo del dataset
+
 datos_historico <- read_csv("urinalysis_tests.csv")
 
-#
+#Comenzamos a procesar los datos que requieran ser procesados
 
-datos_procesados <- datos_historico
-# Verificar la estructura de los datos
-
+datos_procesados <- datos_historic
 str(datos_procesados)
+
+#Se realiza el procesamiento por cada tipo de variable
+#Variables dicotomicas
+#Se pasan de positivos y negativos de 1 y 0.
+#Genero, diagnostico, transparencia y proteina.
 
 datos_procesados$Gender <- ifelse(datos_procesados$Gender == "MALE", 0, 1)
 datos_procesados$Diagnosis <- ifelse(datos_procesados$Diagnosis == "NEGATIVE", 0, 1)
 datos_procesados$Transparency <- ifelse(datos_procesados$Transparency == "CLEAR",1,0)
 datos_procesados$Protein <- ifelse(datos_procesados$Protein == "NEGATIVE",0,1)
 
-# Variables cuantificadoras
-
 # ---------------------------------------------------------------------------------
-#Edad
+
+# Variables cuantificadoras
+# Se agrupan en intervalos
+# Edad
 
 intervalos_edad <- c(0.0,12.0,18.0,30.0,60.0,80.0,199.0)
 grupos_edad <- c(1, 2, 3, 4,5,6)
 
 datos_procesados$Age <-cut(datos_procesados$Age, breaks = intervalos_edad, labels = grupos_edad, right = FALSE)
-
-# ---------------------------------------------------------------------------------
 
 #PH
 
@@ -34,8 +50,6 @@ intervalos_pH <- c(5.0,5.5,6.0,6.5,7.0,7.5,8.0)
 grupos_pH <- c(1, 2, 3, 4,5,6)
 
 datos_procesados$pH <-cut(datos_procesados$pH, breaks = intervalos_pH, labels = grupos_pH, right = FALSE)
-
-# ---------------------------------------------------------------------------------
 
 #Specific Gravity
 
@@ -46,115 +60,114 @@ datos_procesados$`Specific Gravity` <-cut(datos_procesados$`Specific Gravity`, b
 
 # ---------------------------------------------------------------------------------
 
-# Por variables Categoricas
+# Variables Categoricas
+# Se pasan de un string a valor numerico
 
 # Color
 
-#
-#
-
-# ---------------------------------------------------------------------------------
 categorias_colores <- unique(datos_procesados$Color)
 numeros_colores <- 1:length(categorias_colores)
 mapeo_colores <- setNames(numeros_colores, categorias_colores)
 datos_procesados$Color <- mapeo_colores[datos_procesados$Color]  
 
-# ---------------------------------------------------------------------------------
+#Glucose
 
-
-
-# #Glucose
-# 
-# ---------------------------------------------------------------------------------
 categorias_glucose <- unique(datos_procesados$Glucose)
 numeros_glucosa <- 1:length(categorias_glucose)
 mapeo_glucosa <- setNames(numeros_glucosa, categorias_glucose)
 datos_procesados$Glucose <- mapeo_glucosa[datos_procesados$Glucose]  
 
+# WBC
 
-
-# ---------------------------------------------------------------------------------
-# # WBC
-# 
-# #
-# #
-# 
-# # Los Respectivos Números
-# 
-
-# ---------------------------------------------------------------------------------
 categorias_WBC <- unique(datos_procesados$WBC)
 numeros_wbc <- 1:length(categorias_WBC)
 mapeo_wbc <- setNames(numeros_wbc, categorias_WBC)
 datos_procesados$WBC <- mapeo_wbc[datos_procesados$WBC]  
 
-# ---------------------------------------------------------------------------------
+# RBC
 
-# ---------------------------------------------------------------------------------
-# # RBC
-# 
-# #
-# #
-# ---------------------------------------------------------------------------------
 categorias_RBC <- unique(datos_procesados$RBC)
 numeros_RBC <- 1:length(categorias_RBC)
 mapeo_RBC <- setNames(numeros_RBC, categorias_RBC)
 datos_procesados$RBC <- mapeo_RBC[datos_procesados$RBC]  
+
 # ---------------------------------------------------------------------------------
 
-
-#Ordinales
+# Variables Ordinales
+# Estas están ordenadas según la frecuencia en que aparecen dentro de un examen.
+# Primero se especifica los ordenes de cada una
+# Se asigna un valor numerico a cada frecuencia
+# Se remplaza la etiqueta por ese valor numerico despues.
 
 categorias_ordinales <- c("NONE SEEN","RARE","FEW","OCCASIONAL","MODERATE","PLENTY","LOADED")
 numeros_ordinales <- 1:length(categorias_ordinales)
 
-# ---------------------------------------------------------------------------------
-# # Epitelial Cells
+# Epitelial Cells
 
 mapeo_EC <- setNames(numeros_ordinales, categorias_ordinales)
 datos_procesados$`Epithelial Cells` <- mapeo_EC[datos_procesados$`Epithelial Cells`]  
 
 
-# # Mucous Threads
+# Mucous Threads
 
 mapeo_MT <- setNames(numeros_ordinales, categorias_ordinales)
 datos_procesados$`Mucous Threads` <- mapeo_MT[datos_procesados$`Mucous Threads`]  
 
-# # Amorphous Urates
+# Amorphous Urates
 
 mapeo_AU <- setNames(numeros_ordinales, categorias_ordinales)
 datos_procesados$`Amorphous Urates` <- mapeo_AU[datos_procesados$`Amorphous Urates`]  
 
-# # Bacteria
+# Bacteria
 
 mapeo_Bacteria <- setNames(numeros_ordinales, categorias_ordinales)
 datos_procesados$Bacteria <- mapeo_Bacteria[datos_procesados$Bacteria]  
 
 # ---------------------------------------------------------------------------------
-#Histogramas datos procesados
+
+# Ahora se va a trabajar con los datos ya procesados
+# Se van a agrupar los datos segun su tipo
+
+# Dicotomicos -> separados en casos positivos y negativos
 
 datos_procesados_dicotomicos <- select(datos_procesados,Gender,Transparency,Protein,Diagnosis)
-  
+
+# Casos positivos dicotomicos
+
 datos_procesados_dicotomicos_positivos <- filter( datos_procesados_dicotomicos,Diagnosis== 1)
 datos_procesados_dicotomicos_positivos <- subset(datos_procesados_dicotomicos_positivos,select = -Diagnosis)
+
+# Casos negativos dicotomicos
 
 datos_procesados_dicotomicos_negativos <- filter( datos_procesados_dicotomicos,Diagnosis== 0)
 datos_procesados_dicotomicos_negativos <- subset(datos_procesados_dicotomicos_negativos,select = -Diagnosis)
 
+
+#Ahora pasamos a los datos procesados ordinales.
+
+# Ordinales ->   separados en casos positivos y negativos
+
 datos_procesados_ordinales <- select(datos_procesados,`Epithelial Cells`,`Mucous Threads`,`Amorphous Urates`,Bacteria,Diagnosis)
+
+# Casos ordinales positivos
 
 datos_procesados_ordinales_positivos <-  filter( datos_procesados_ordinales,Diagnosis== 1)
 datos_procesados_ordinales_positivos <-  subset(datos_procesados_ordinales_positivos, select = -Diagnosis)
 
+# Casos ordinales negativos
+
 datos_procesados_ordinales_negativos <-  filter( datos_procesados_ordinales,Diagnosis== 0)
 datos_procesados_ordinales_negativos <-  subset(datos_procesados_ordinales_negativos, select = -Diagnosis)
 
+# ---------------------------------------------------------------------------------
+
+#Se generan graficos de barra para observar el comportamiento de cada uno de los conjuntos
 
 datos_dic_pos <- tidyr::gather(datos_procesados_dicotomicos_positivos, key = "Variable", value = "Valor")
 ggplot(datos_dic_pos, aes(x = Valor, fill = Variable)) +
   geom_bar(position = "dodge", color = "black") +
   facet_wrap(~ Variable, scales = "free") +
-  labs(title = "Gráficos de barras de las variables", x = "Valor", y = "Cantidad") +
+  labs(title = "Variables dicotomicas Casos Positivos", x = "Valor", y = "Cantidad") +
   theme_minimal()
 
 
@@ -162,7 +175,7 @@ datos_dic_pos <- tidyr::gather(datos_procesados_dicotomicos_negativos, key = "Va
 ggplot(datos_dic_pos, aes(x = Valor, fill = Variable)) +
   geom_bar(position = "dodge", color = "black") +
   facet_wrap(~ Variable, scales = "free") +
-  labs(title = "Gráficos de barras de las variables", x = "Valor",y = "Cantidad") +
+  labs(title = "Variables dicotomicas Casos Negativos", x = "Valor",y = "Cantidad") +
   theme_minimal()
 
 
@@ -171,7 +184,7 @@ datos_ord_pos <- tidyr::gather(datos_procesados_ordinales_positivos, key = "Vari
 ggplot(datos_ord_pos, aes(x = Valor, fill = Variable)) +
   geom_bar(position = "dodge", color = "black") +
   facet_wrap(~ Variable, scales = "free") +
-  labs(title = "Gráficos de barras de las variables", x = "Valor",y = "Cantidad") +
+  labs(title = "Variables Ordinales casos positivos", x = "Valor",y = "Cantidad") +
   theme_minimal()
 
 
@@ -179,8 +192,48 @@ datos_ord_neg <- tidyr::gather(datos_procesados_ordinales_negativos, key = "Vari
 ggplot(datos_ord_neg, aes(x = Valor, fill = Variable)) +
   geom_bar(position = "dodge", color = "black") +
   facet_wrap(~ Variable, scales = "free") +
-  labs(title = "Gráficos de barras de las variables", x = "Valor",y = "Cantidad") +
+  labs(title = "Variables Ordinales casos Negativos", x = "Valor",y = "Cantidad") +
   theme_minimal()
+
+# ---------------------------------------------------------------------------------
+
+# Ahora pasamos a las pruebas estadisticas para estas variables.
+
+# Pruebas estadisticas para las variables dicotomicas.
+# Se comparan 2 variables dicotomicas (dicotomica y diagnostico)
+# La prueba mas adecuada resulta ser la prueba de fisher.
+
+# Se aplica la prueba
+
+fisher_gender <- fisher.test(datos_procesados_dicotomicos$Gender,datos_procesados_dicotomicos$Diagnosis, alternative = "two.sided", conf.level = 0.05)
+fisher_protein <- fisher.test(datos_procesados_dicotomicos$Protein,datos_procesados_dicotomicos$Diagnosis, alternative = "two.sided", conf.level = 0.05)
+fisher_transparency <- fisher.test(datos_procesados_dicotomicos$Transparency,datos_procesados_dicotomicos$Diagnosis, alternative = "two.sided", conf.level = 0.05)
+
+# Se obtienen los resultados
+
+print(fisher_gender)
+print(fisher_protein)
+print(fisher_transparency)
+
+
+# Pruebas estadisticas para las variables ordinales.
+# Se comparan 2 variables independientes
+# Estas son los casos positivos y los casos negativos de las variables ordinales
+# La prueba mas adecuada es la de wilcoxon mann whitney
+
+# Se aplica la prueba
+
+wilcox_AU <- wilcox.test(datos_procesados_ordinales_negativos$`Amorphous Urates`,datos_procesados_ordinales_positivos$`Amorphous Urates`, alternative = "two.sided", conf.level = 0.05)
+wilcox_Bac<- wilcox.test(datos_procesados_ordinales_negativos$Bacteria,datos_procesados_ordinales_positivos$Bacteria, alternative = "two.sided", conf.level = 0.05)
+wilcox_EC <- wilcox.test(datos_procesados_ordinales_negativos$`Epithelial Cells`,datos_procesados_ordinales_positivos$`Epithelial Cells`,alternative = "two.sided", conf.level = 0.05)
+wilcox_MT <- wilcox.test(datos_procesados_ordinales_negativos$`Mucous Threads`,datos_procesados_ordinales_positivos$`Mucous Threads`,alternative = "two.sided", conf.level = 0.05)
+
+# Se obtienen los resultados
+
+print(wilcox_AU)
+print(wilcox_Bac)
+print(wilcox_EC)
+print(wilcox_MT)
 
 # ---------------------------------------------------------------------------------
 
