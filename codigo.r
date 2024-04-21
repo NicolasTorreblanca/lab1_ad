@@ -236,6 +236,8 @@ print(wilcox_EC)
 print(wilcox_MT)
 
 # ---------------------------------------------------------------------------------
+#Análisis descriptivo para variables numéricas continuas
+
 
 # Crear un nuevo dataframe para almacenar los valores modificados
 datos_num <- datos_historico
@@ -395,4 +397,62 @@ t_test_result <- t.test(datos_positive$`Specific Gravity` , datos_negative$`Spec
 
 # Imprimir el resultado
 print(t_test_result)
+
+
+#-------------------------------------------------------------------------
+#----- Prueba chi-cuadrado para Variables categóricas nominales
+
+nominal <- datos_procesados[, c("Color", "Glucose", "WBC", "RBC", "Diagnosis")]
+
+#--- Color
+
+tabla_contingencia <- table(nominal$Color, nominal$Diagnosis)
+
+# Aplicar la prueba de chi-cuadrado
+resultado_chi_cuadrado <- chisq.test(tabla_contingencia)
+
+# Imprime el resultado
+print(resultado_chi_cuadrado)
+
+#--- Glucose
+
+tabla_contingencia <- table(nominal$Glucose, nominal$Diagnosis)
+
+# Aplicar la prueba de chi-cuadrado
+resultado_chi_cuadrado <- chisq.test(tabla_contingencia)
+
+# Imprime el resultado
+print(resultado_chi_cuadrado)
+
+#--- WBC
+
+tabla_contingencia <- table(nominal$WBC, nominal$Diagnosis)
+
+# Aplicar la prueba de chi-cuadrado
+resultado_chi_cuadrado <- chisq.test(tabla_contingencia)
+
+# Imprime el resultado
+print(resultado_chi_cuadrado)
+
+#--- RBC
+
+tabla_contingencia <- table(nominal$RBC, nominal$Diagnosis)
+
+# Aplicar la prueba de chi-cuadrado
+resultado_chi_cuadrado <- chisq.test(tabla_contingencia)
+
+# Imprime el resultado
+print(resultado_chi_cuadrado)
+
+#--------Modelo de regresión logística
+
+# Crear el modelo de regresión logística
+modelo <- glm(Diagnosis ~ Age + Gender + Color + Transparency + Glucose +
+                Protein + pH + `Specific Gravity` + WBC + RBC + 
+                `Epithelial Cells` + `Mucous Threads` + `Amorphous Urates` +
+                Bacteria, data = datos_procesados, family = binomial)
+
+# Ver un resumen del modelo
+summary(modelo)
+
 
