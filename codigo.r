@@ -20,7 +20,7 @@ datos_historico <- read_csv("urinalysis_tests.csv")
 
 #Comenzamos a procesar los datos que requieran ser procesados
 
-datos_procesados <- datos_historic
+datos_procesados <- datos_historico
 str(datos_procesados)
 
 #Se realiza el procesamiento por cada tipo de variable
