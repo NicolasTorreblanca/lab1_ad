@@ -81,16 +81,37 @@ datos_procesados$Glucose <- mapeo_glucosa[datos_procesados$Glucose]
 
 # WBC
 
-categorias_WBC <- unique(datos_procesados$WBC)
-numeros_wbc <- 1:length(categorias_WBC)
-mapeo_wbc <- setNames(numeros_wbc, categorias_WBC)
+# Función para asignar grupos
+asignar_grupos_blood_cells <- function(valor) {
+  if (valor == "LOADED" | valor == "TNTC") {
+    return(valor)
+  } else {
+    primer_digito <- substr(valor, 1, 1)  # Extraer el primer dígito
+    ultimo_digito <- substr(valor, nchar(valor), nchar(valor))  # Extraer el último dígito
+    
+    # Verificar si el primer y último dígito cumplen los criterios
+    if (primer_digito %in% c("0", "1", "2", "3", "4") & ultimo_digito %in% c("0", "1", "2", "3", "4", "5")) {
+      return("0-5")
+    } else {
+      return(">5")
+    }
+  }
+}
+
+datos_procesados$WBC <- sapply(datos_procesados$WBC,asignar_grupos_blood_cells)
+datos_procesados$RBC <- sapply(datos_procesados$RBC,asignar_grupos_blood_cells)
+
+categorias_BC <- unique(datos_procesados$WBC)
+numeros_BC <- 1:length(categorias_BC)
+
+
+#WBC
+mapeo_wbc <- setNames(numeros_BC, categorias_BC)
 datos_procesados$WBC <- mapeo_wbc[datos_procesados$WBC]  
 
 # RBC
 
-categorias_RBC <- unique(datos_procesados$RBC)
-numeros_RBC <- 1:length(categorias_RBC)
-mapeo_RBC <- setNames(numeros_RBC, categorias_RBC)
+mapeo_RBC <- setNames(numeros_BC, categorias_BC)
 datos_procesados$RBC <- mapeo_RBC[datos_procesados$RBC]  
 
 # ---------------------------------------------------------------------------------
