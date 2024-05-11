@@ -166,7 +166,7 @@ print(nclusters)
 
 
 # Aplicar PAM con 5 clusters
-resultado_pam <- pam(datos_numericos , k = )
+resultado_pam <- pam(datos_numericos , k = 5)
 
 fviz_cluster(resultado_pam, data = datos_numericos)
 
