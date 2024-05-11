@@ -48,8 +48,8 @@ datos_procesados$Age <-cut(datos_procesados$Age, breaks = intervalos_edad, label
 
 #PH
 
-intervalos_pH <- c(5.0,5.5,6.0,6.5,7.0,7.5,8.0)
-grupos_pH <- c(1, 2, 3, 4,5,6)
+intervalos_pH <- c(5.0,5.5,6.0,6.5,7.0,7.5,8.0, 8.5)
+grupos_pH <- c(1, 2, 3, 4,5,6,7)
 
 datos_procesados$pH <-cut(datos_procesados$pH, breaks = intervalos_pH, labels = grupos_pH, right = FALSE)
 
@@ -148,28 +148,42 @@ datos_procesados$Bacteria <- mapeo_Bacteria[datos_procesados$Bacteria]
 
 
 # -----------------------------------------------------------------------
+# Se elimina única observacion con un dato NA
+
+datos_procesados <- na.omit(datos_procesados)
+
+# -------------------------------------------------
 
 # Se calcula el número de clusters a utilizar
 
-datos_numericos <- datos_procesados[, sapply(datos_procesados, is.numeric)]
+datos_numericos <- sapply(datos_procesados[, -1] , as.numeric)
 
-# # Utiliza fviz_nbclust para visualizar diferentes criterios
-# nclusters <- fviz_nbclust(datos_numericos, pam, method = "silhouette")
-# 
-# # Visualiza el resultado
-# print(nclusters)
+# Utiliza fviz_nbclust para visualizar diferentes criterios
+nclusters <- fviz_nbclust(datos_numericos, pam, method = "silhouette")
+
+# Visualiza el resultado
+print(nclusters)
 
 
-# Aplicar PAM con 2 clusters
-resultado_pam <- pam(datos_procesados, k = 2)
+# Aplicar PAM con 5 clusters
+resultado_pam <- pam(datos_numericos , k = )
+
+fviz_cluster(resultado_pam, data = datos_numericos)
+
 
 # Obtener la asignación de clusters para cada observación
 clusters <- resultado_pam$clustering
 
-datos_cluster1 <- datos_procesados[clusters == 1, ]
-datos_cluster2 <- datos_procesados[clusters == 2, ]
+# Crear dataframes para cada cluster
+datos_por_cluster <- lapply(1:max(clusters), function(i) datos_numericos[clusters == i, ])
 
-# Realizar análisis adicional de cada cluster
-summary(datos_cluster1)
-summary(datos_cluster2)
+# Realizar análisis adicional para cada cluster
+for (i in 1:length(datos_por_cluster)) {
+  cat("Cluster", i, ":\n")
+  print(summary(datos_por_cluster[[i]]))
+}
+
+
+
+
 
