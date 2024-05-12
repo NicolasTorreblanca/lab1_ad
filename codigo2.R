@@ -13,6 +13,8 @@ library(dplyr)
 library(ggplot2)
 library(cluster)
 library(factoextra)
+library(klaR)
+library(clustMixType)
 
 #----------------------------------------------------------------------------
 
@@ -74,8 +76,8 @@ datos_procesados$Color <- mapeo_colores[datos_procesados$Color]
 
 #Glucose
 
-categorias_glucose <- unique(datos_procesados$Glucose)
-numeros_glucosa <- 1:length(categorias_glucose)
+categorias_glucose <- c("NEGATIVE", "TRACE", "1+", "2+", "3+", "4+")
+numeros_glucosa <- 0:length(categorias_glucose)
 mapeo_glucosa <- setNames(numeros_glucosa, categorias_glucose)
 datos_procesados$Glucose <- mapeo_glucosa[datos_procesados$Glucose]  
 
@@ -123,7 +125,7 @@ datos_procesados$RBC <- mapeo_RBC[datos_procesados$RBC]
 # Se remplaza la etiqueta por ese valor numerico despues.
 
 categorias_ordinales <- c("NONE SEEN","RARE","FEW","OCCASIONAL","MODERATE","PLENTY","LOADED")
-numeros_ordinales <- 1:length(categorias_ordinales)
+numeros_ordinales <- 0:length(categorias_ordinales)
 
 # Epitelial Cells
 
@@ -184,6 +186,86 @@ for (i in 1:length(datos_por_cluster)) {
 }
 
 
+# resultado_kmodes <- kmodes(datos_numericos, modes = 3)
+# 
+# # Ver los resultados
+# print(resultado_kmodes)
+# 
+# pca_result <- prcomp(datos_numericos)
+# 
+# # Graficamos los clusters en el espacio de las dos primeras componentes principales
+# fviz_cluster(list(data = pca_result$x, cluster = resultado_kmodes$cluster))
+# 
+# 
+# 
+# resultado_kproto <- kproto(datos_procesados, k = 5)
+# 
+# # Ver los resultados
+# print(resultado_kproto)
+# 
+# pca_result <- prcomp(datos_numericos)
+# 
+# fviz_cluster(list(data = pca_result$x, cluster = resultado_kproto$cluster))
+# 
+# fviz_cluster(resultado_kproto, data = datos_procesados, geom = "point", stand = FALSE)
+# 
+# 
+# pca_result <- prcomp(datos_numericos, scale. = TRUE)
+# 
+# # Paso 2: Proyectar los datos en un espacio de menor dimensionalidad
+# datos_pca <- as.data.frame(predict(pca_result))
+# 
+# # Paso 3: Visualizar los clusters en el nuevo espacio
+# # Supongamos que ya tienes los clusters obtenidos mediante algún algoritmo de clustering, como k-means o k-modes
+# # Reemplaza 'resultado_clusters' con tus resultados reales
+# fviz_cluster(resultado_pam, geom = "point", data = datos_pca)
+# 
+# # -------------------------------------------------
+
+# Columnas de interes
+
+interes <- datos_numericos[, c("Transparency", "Bacteria", "WBC", "Diagnosis")]
+
+interes <- datos_numericos[, c("Color", "RBC", "WBC", "Diagnosis")]
+
+interes <- datos_numericos[, c("Transparency", "Gender", "Protein", "Diagnosis")] ###
+
+
+interes <- datos_numericos[, c("Amorphous Urates", "Epithelial Cells", "Bacteria", "Diagnosis")]
+
+interes <- datos_numericos[, c("Bacteria", "WBC", "Epithelial Cells", "Glucose",
+                               "Protein", "Diagnosis")]
+
+
+# Utiliza fviz_nbclust para visualizar diferentes criterios
+nclusters <- fviz_nbclust(interes, pam, method = "silhouette")
+
+# Visualiza el resultado
+print(nclusters)
+
+# Aplicar PAM con 5 clusters
+resultado_interes <- pam(interes , k = 3)
+
+# resultado_kmodes <- kmodes(interes, modes = 3)
+
+fviz_cluster(resultado_interes, data = interes, geom = "point")
+
+# pca_result <- prcomp(interes)
+# 
+# # Graficamos los clusters en el espacio de las dos primeras componentes principales
+# fviz_cluster(list(data = pca_result$x, cluster = resultado_kmodes$cluster))
 
 
 
+
+# Obtener la asignación de clusters para cada observación
+clusters <- resultado_interes$clustering
+
+# Crear dataframes para cada cluster
+datos_por_cluster <- lapply(1:max(clusters), function(i) datos_numericos[clusters == i, ])
+
+# Realizar análisis adicional para cada cluster
+for (i in 1:length(datos_por_cluster)) {
+  cat("Cluster", i, ":\n")
+  print(summary(datos_por_cluster[[i]]))
+}
