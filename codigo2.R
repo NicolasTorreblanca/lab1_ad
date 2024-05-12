@@ -1,4 +1,4 @@
-#Laboratorio 1 Analisis de datos
+#Laboratorio 2 Analisis de datos
 
 #Bryan Salgado
 #Nicolas Torreblanca
@@ -149,16 +149,29 @@ datos_procesados$Bacteria <- mapeo_Bacteria[datos_procesados$Bacteria]
 
 # -----------------------------------------------------------------------
 
+#Revisamos cuales son los valores nulos dentro del set de datos
+
+#contar_na <-colSums(is.na(datos_procesados))
+#contar_na
+
+#Ignoramos las filas en donde se encuentren.
+
+datos_procesados <- na.omit(datos_procesados)
+
 # Se calcula el número de clusters a utilizar
 
 datos_numericos <- datos_procesados[, sapply(datos_procesados, is.numeric)]
 
 # # Utiliza fviz_nbclust para visualizar diferentes criterios
-# nclusters <- fviz_nbclust(datos_numericos, pam, method = "silhouette")
+nclusters_sil <- fviz_nbclust(datos_numericos, pam, method = "silhouette")
 # 
 # # Visualiza el resultado
-# print(nclusters)
+print(nclusters_sil)
 
+nclusters_wss <- fviz_nbclust(datos_numericos, pam, method = "wss")
+# 
+# # Visualiza el resultado
+print(nclusters_wss)
 
 # Aplicar PAM con 2 clusters
 resultado_pam <- pam(datos_procesados, k = 2)
@@ -172,4 +185,5 @@ datos_cluster2 <- datos_procesados[clusters == 2, ]
 # Realizar análisis adicional de cada cluster
 summary(datos_cluster1)
 summary(datos_cluster2)
+
 
