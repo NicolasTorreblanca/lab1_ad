@@ -1,4 +1,4 @@
-#Laboratorio 2 Analisis de datos
+#Laboratorio 1 Analisis de datos
 
 #Bryan Salgado
 #Nicolas Torreblanca
@@ -15,6 +15,7 @@ library(cluster)
 library(factoextra)
 library(klaR)
 library(clustMixType)
+library(proxy)
 
 #----------------------------------------------------------------------------
 
@@ -155,42 +156,23 @@ datos_procesados$Bacteria <- mapeo_Bacteria[datos_procesados$Bacteria]
 datos_procesados <- na.omit(datos_procesados)
 
 # -------------------------------------------------
+#Primera generación de clusters incluyendo todas lad dimensiones -ID
 
-#Revisamos cuales son los valores nulos dentro del set de datos
-
-#contar_na <-colSums(is.na(datos_procesados))
-#contar_na
-
-#Ignoramos las filas en donde se encuentren.
-
-datos_procesados <- na.omit(datos_procesados)
-
-# Se calcula el número de clusters a utilizar
-
+# Se elimina la columna ID
 datos_numericos <- sapply(datos_procesados[, -1] , as.numeric)
 
-<<<<<<< HEAD
-# # Utiliza fviz_nbclust para visualizar diferentes criterios
-nclusters_sil <- fviz_nbclust(datos_numericos, pam, method = "silhouette")
-# 
-# # Visualiza el resultado
-print(nclusters_sil)
-=======
-# Utiliza fviz_nbclust para visualizar diferentes criterios
+
+# Se calcula el número de clusters a utilizar
 nclusters <- fviz_nbclust(datos_numericos, pam, method = "silhouette")
 
 # Visualiza el resultado
 print(nclusters)
->>>>>>> 93f735acf903c8064a2f515293d38c6b736be6da
 
-nclusters_wss <- fviz_nbclust(datos_numericos, pam, method = "wss")
-# 
-# # Visualiza el resultado
-print(nclusters_wss)
 
 # Aplicar PAM con 5 clusters
 resultado_pam <- pam(datos_numericos , k = 5)
 
+# Se visualizan los clúster
 fviz_cluster(resultado_pam, data = datos_numericos)
 
 
@@ -206,55 +188,42 @@ for (i in 1:length(datos_por_cluster)) {
   print(summary(datos_por_cluster[[i]]))
 }
 
+#---------------------------------------------------------------------------
+# Segunda generación de clústers con kmodes
 
-<<<<<<< HEAD
-=======
-# resultado_kmodes <- kmodes(datos_numericos, modes = 3)
-# 
-# # Ver los resultados
-# print(resultado_kmodes)
-# 
-# pca_result <- prcomp(datos_numericos)
-# 
-# # Graficamos los clusters en el espacio de las dos primeras componentes principales
-# fviz_cluster(list(data = pca_result$x, cluster = resultado_kmodes$cluster))
-# 
-# 
-# 
-# resultado_kproto <- kproto(datos_procesados, k = 5)
-# 
-# # Ver los resultados
-# print(resultado_kproto)
-# 
-# pca_result <- prcomp(datos_numericos)
-# 
-# fviz_cluster(list(data = pca_result$x, cluster = resultado_kproto$cluster))
-# 
-# fviz_cluster(resultado_kproto, data = datos_procesados, geom = "point", stand = FALSE)
-# 
-# 
-# pca_result <- prcomp(datos_numericos, scale. = TRUE)
-# 
-# # Paso 2: Proyectar los datos en un espacio de menor dimensionalidad
-# datos_pca <- as.data.frame(predict(pca_result))
-# 
-# # Paso 3: Visualizar los clusters en el nuevo espacio
-# # Supongamos que ya tienes los clusters obtenidos mediante algún algoritmo de clustering, como k-means o k-modes
-# # Reemplaza 'resultado_clusters' con tus resultados reales
-# fviz_cluster(resultado_pam, geom = "point", data = datos_pca)
-# 
-# # -------------------------------------------------
-
-# Columnas de interes
-
-interes <- datos_numericos[, c("Transparency", "Bacteria", "WBC", "Diagnosis")]
-
-interes <- datos_numericos[, c("Color", "RBC", "WBC", "Diagnosis")]
-
-interes <- datos_numericos[, c("Transparency", "Gender", "Protein", "Diagnosis")] ###
+resultado_kmodes <- kmodes(datos_numericos, modes = 5)
 
 
-interes <- datos_numericos[, c("Amorphous Urates", "Epithelial Cells", "Bacteria", "Diagnosis")]
+
+pca_result <- prcomp(datos_numericos)
+
+# Graficamos los clusters en el espacio de las dos primeras componentes principales
+fviz_cluster(list(data = pca_result$x, cluster = resultado_kmodes$cluster))
+
+
+
+# Tercera generación de clústers con kproto
+
+resultado_kproto <- kproto(datos_procesados, k = 5)
+
+
+pca_result <- prcomp(datos_numericos)
+
+fviz_cluster(list(data = pca_result$x, cluster = resultado_kproto$cluster))
+
+
+
+# -------------------------------------------------
+
+# Generación de clústers con columnas de interés
+
+
+# Se aislan las dimensiones de interés
+
+interes <- datos_numericos[, c("Transparency", "Bacteria","Color", "RBC", "WBC",
+                               "Diagnosis", "Gender", "Protein", "Amorphous Urates",
+                               "Epithelial Cells")]
+
 
 interes <- datos_numericos[, c("Bacteria", "WBC", "Epithelial Cells", "Glucose",
                                "Protein", "Diagnosis")]
@@ -266,18 +235,12 @@ nclusters <- fviz_nbclust(interes, pam, method = "silhouette")
 # Visualiza el resultado
 print(nclusters)
 
-# Aplicar PAM con 5 clusters
-resultado_interes <- pam(interes , k = 3)
 
-# resultado_kmodes <- kmodes(interes, modes = 3)
+# Aplicar PAM con 5 clusters
+resultado_interes <- pam(interes ,  k = 3)
+
 
 fviz_cluster(resultado_interes, data = interes, geom = "point")
-
-# pca_result <- prcomp(interes)
-# 
-# # Graficamos los clusters en el espacio de las dos primeras componentes principales
-# fviz_cluster(list(data = pca_result$x, cluster = resultado_kmodes$cluster))
-
 
 
 
@@ -292,4 +255,3 @@ for (i in 1:length(datos_por_cluster)) {
   cat("Cluster", i, ":\n")
   print(summary(datos_por_cluster[[i]]))
 }
->>>>>>> 93f735acf903c8064a2f515293d38c6b736be6da
