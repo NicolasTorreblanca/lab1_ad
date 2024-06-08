@@ -171,13 +171,17 @@ dumy <- dummy_cols(data, select_columns = c("Age", "Color", "Glucose", "pH",
                                             "Epithelial Cells", "Mucous Threads",
                                             "Amorphous Urates", "Bacteria"))
 
-columnas_a_eliminar <- c("Age", "Color", "Glucose", "pH",
+columnas_a_eliminar <- c("Age", "Color", "Glucose", "pH", "pH_2",
                          "Specific Gravity", "WBC", "RBC",
                          "Epithelial Cells", "Mucous Threads",
-                         "Amorphous Urates", "Bacteria")
+                         "Amorphous Urates", "Bacteria",
+                         "Specific Gravity_1", "Specific Gravity_8")
 
 # Eliminar las columnas originales del dataframe 'dumy'
 dumy <- dumy[, !colnames(dumy) %in% columnas_a_eliminar]
+
+dumy <- lapply(dumy, as.factor)
+dumy <- as.data.frame(dumy)
 
 
 
@@ -185,13 +189,10 @@ dumy <- dumy[, !colnames(dumy) %in% columnas_a_eliminar]
 transactions <- as(dumy, "transactions")
 
 # Ejecutar el algoritmo Apriori
-#rules <- apriori(transactions, parameter = list(support = 0.1, confidence = 0.8))
+rules <- apriori(transactions, parameter = list(support = 0.1, confidence = 0.8),
+                 appearance = list(rhs = "Diagnosis=0"))
 
-rules <- apriori(
-  one_hot_data, 
-  parameter = list(support = 0.1, confidence = 0.8),
-  appearance = list(rhs = "Diagnosis=1")
-)
+
 
 # Mostrar las reglas generadas
 inspect(head(rules, 10))
