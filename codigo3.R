@@ -18,7 +18,7 @@ library(clustMixType)
 library(proxy)
 library(arules)
 library(arulesViz)
-
+library(caret)
 library(fastDummies)
 
 
@@ -31,7 +31,7 @@ datos_historico <- read_csv("urinalysis_tests.csv")
 
 #Comenzamos a procesar los datos que requieran ser procesados
 
-datos_procesados <- datos_historico
+datos_procesados <- na.omit(datos_historico)
 str(datos_procesados)
 
 #Se realiza el procesamiento por cada tipo de variable
@@ -50,10 +50,7 @@ datos_procesados$Protein <- ifelse(datos_procesados$Protein == "NEGATIVE",0,1)
 # Se agrupan en intervalos
 # Edad
 
-intervalos_edad <- c(0.0,12.0,18.0,30.0,60.0,80.0,199.0)
-grupos_edad <- c(1, 2, 3, 4,5,6)
-
-datos_procesados$Age <-cut(datos_procesados$Age, breaks = intervalos_edad, labels = grupos_edad, right = FALSE)
+datos_procesados$Age <- ifelse(datos_procesados$Age >= 14, 1, 0)
 
 #PH
 
@@ -157,25 +154,43 @@ datos_procesados$Bacteria <- mapeo_Bacteria[datos_procesados$Bacteria]
 
 
 # -----------------------------------------------------------------------
-# Se elimina única observacion con un dato NA
-
-datos_procesados <- na.omit(datos_procesados)
 
 # Se elimina la columna ID
 data <- datos_procesados[, -1]
 
+data$Color <- ifelse(data$Color >= 6, 1, 0)
+data$Glucose <- ifelse(data$Glucose >= 4, 1, 0)
+
+data$pH <- as.character(data$pH)
+
+# Luego, conviertes la columna de caracteres a enteros
+data$pH <- as.integer(data$pH)
+
+
+data$pH <- ifelse(data$pH >= 3, 1, 0)
+
+data$`Specific Gravity` <- as.character(data$`Specific Gravity`)
+
+# Luego, conviertes la columna de caracteres a enteros
+data$`Specific Gravity` <- as.integer(data$`Specific Gravity`)
+
+data$`Specific Gravity` <- ifelse(data$`Specific Gravity` >= 4, 1, 0)
+data$`Epithelial Cells` <- ifelse(data$`Epithelial Cells` >= 3, 1, 0)
+data$`Mucous Threads` <- ifelse(data$`Mucous Threads` >= 3, 1, 0)
+
+
 data[] <- lapply(data, as.factor)
 
-dumy <- dummy_cols(data, select_columns = c("Age", "Color", "Glucose", "pH",
-                                            "Specific Gravity", "WBC", "RBC",
-                                            "Epithelial Cells", "Mucous Threads",
+# Se modifica la base de datos para ser del tipo one-hot
+
+
+
+
+dumy <- dummy_cols(data, select_columns = c( "WBC", "RBC",
                                             "Amorphous Urates", "Bacteria"))
 
-columnas_a_eliminar <- c("Age", "Color", "Glucose", "pH", "pH_2",
-                         "Specific Gravity", "WBC", "RBC",
-                         "Epithelial Cells", "Mucous Threads",
-                         "Amorphous Urates", "Bacteria",
-                         "Specific Gravity_1", "Specific Gravity_8")
+columnas_a_eliminar <- c( "WBC", "RBC",
+                          "Amorphous Urates", "Bacteria")
 
 # Eliminar las columnas originales del dataframe 'dumy'
 dumy <- dumy[, !colnames(dumy) %in% columnas_a_eliminar]
@@ -183,30 +198,29 @@ dumy <- dumy[, !colnames(dumy) %in% columnas_a_eliminar]
 dumy <- lapply(dumy, as.factor)
 dumy <- as.data.frame(dumy)
 
+#reducido <- dumy[ , -nearZeroVar(dumy)]
 
 
 # Crear un conjunto de transacciones
 transactions <- as(dumy, "transactions")
 
 # Ejecutar el algoritmo Apriori
-rules <- apriori(transactions, parameter = list(support = 0.1, confidence = 0.8),
+rules <- apriori(transactions,
+                 parameter = list(support = 0.1, confidence = 0.8,  maxlen = 5),
                  appearance = list(rhs = "Diagnosis=0"))
 
 
+print(paste("Reglas generadas:", length(rules)))
 
-# Mostrar las reglas generadas
-inspect(head(rules, 10))
+max_rules <- rules[!is.redundant(rules)]
+print(paste("Reglas maximales:", length(max_rules)))
+inspect(head(sort(max_rules, by = "support"),10))
+
+
+
+
+
 
 # Visualizar las reglas obtenidas
 
 plot(rules, method = "graph")
-
-# plot(
-#   rules, 
-#   method = "graph",
-#   control = list(
-#     max = 10, # Limitar el número de reglas mostradas
-#     display = "all", # Mostrar todas las reglas
-#     verbose = TRUE
-#   )
-# )
